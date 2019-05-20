@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block top_files %}
+        <script type="text/javascript" src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+	    <script type="text/javascript" src="{% static 'js/jquery-ui.min.js' %}"></script>
+	    <script type="text/javascript" src="{% static 'js/slide.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/animatescroll.min.js' %}"></script>
+        <script type="text/javascript">
+            $(function () {
+                $('.contact_me').mouseover(function () {
+                    $('#contact_me').fadeIn();
+                });
+                $('.contact_me').mouseout(function () {
+                    $('#contact_me').fadeOut();
+                });
+            })
+        </script>
+{% endblock top_files %}
+{% block body %}
+		<!-- 首页导航栏 -->
+		<div class="navbar">
+			<ul class="navbar_ul">
+                {% for type in types %}
+				    <li><a href="javascript:;" id="{{ type.id }}">{{ type.type }}</a></li>
+                {% endfor %}
+			</ul>
+		</div>
+		<!-- 首页轮播图 -->
+		<div class="slide">
+			<ul class="slide_pics">
+                {% for banner in banners %}
+				    <li><img src="{{ banner.image.url }}" alt="幻灯片"></li>
+                {% endfor %}
+			</ul>
+			<!-- 轮播图按钮 -->
+			<a href="javascript:;" class="prev"></a><a href="javascript:;" class="next"></a>
+		</div>
+		<!-- 文章列表盒子 -->
+		<div class="article_top"><span>文章列表</span><a href="" class="more">更多&gt;&gt;</a></div>
+		<!-- 文章列表 -->
+		<div class="articles" id="articles">
+			<ul class="article_list" id=1>
+
+			</ul>
+			<div class="page">
+
+                <a href="javascript:;" id="prev">&lt;</a>
+
+
+                <a href="javascript:;" id="next">&gt;</a>
+
+            </div>
+		</div>
+        <a class="contact_me" title="联系我" href="javascript:;"></a>
+        <a id="contact_me" title="联系我" ></a>
+{% endblock body %}
+{% block bottom_files %}
+    <script type="text/javascript">
+        $(function() {
+            // 固定导航栏
+            var navOffset = $('.navbar_ul').offset().top;
+            $(window).scroll(function () {
+                var scrollPos = $(window).scrollTop();
+                if (scrollPos >= navOffset) {
+                    $('.navbar_ul').addClass("fixed");
+                    $('.navbar').addClass("fixed");
+                } else {
+                    $('.navbar_ul').removeClass("fixed");
+                    $('.navbar').removeClass("fixed");
+
+                }
+            });
+            // 点页码&&导航栏执行ajax请求
+            $.ajaxSetup({cache: false});
+            go_to_page(1,1)
+            var type_id = $('.article_list').attr('id')
+
+            //选择所有的页码绑定点击事件
+            function page_click() {
+                $('.page a:not(":first,:last")').click(function () {
+                    var page_id = $(this).text();     //page_id为接下来要请求的页码号
+                    var type_id = $('.article_list').attr('id')
+                    go_to_page(page_id, type_id);
+                });
+            }
+
+            function go_to_page(page_id, type_id) {      //ajax刷新当前页面文章   page_id为接下来要请求的页码号
+                $.ajax({
+                    type: 'GET',
+                    data: {'page': page_id, 'type_id': type_id},
+                    url: '/pageAjax#articles',
+                    datatype: JSON,      //希望返回Json格式的数据
+                    success: function (data) {
+                        f1(data);     //处理返回后的数据
+                    },
+                    error: function () {
+                        console.log('ajax刷新分页数据失败！');
+                    }
+                })
+            }
+
+            function f1(data) {   //处理返回后的数据    data为字符串型
+                data = $.parseJSON(data);    //将字符串型转化为object
+                //刷新文章
+                $('.article_list li').remove();
+                for (var i = 0; i < data.result.length; i++) {
+
+                    $('.article_list').append('<li style="background:url(' +
+                        data.result[i][0] + ') no-repeat;"><a href="article/' +
+                        data.result[i][1] + '"><span class="article_title">' +
+                        data.result[i][2] + '</span><span class="article_time">' +
+                        data.result[i][3] + '</span></a><span class="article_summary">' +
+                        data.result[i][4] + '</span></li>'
+                    );
+                }
+                //刷新页码
+                $('.page a:not(":first,:last")').remove();
+                if(parseInt(data.num_pages) <= 5) {     //如果总页码数小于等于5
+                    for(var i=1;i<=parseInt(data.num_pages);i++){
+                        $('.page a:last').before('<a href="javascript:;">' +i+ '</a>');
+                    }
+                }else if(parseInt(data.page_id)<=3){        //如果当前页码数小于等于3,显示前五页
+                    for(var i=1;i<=5;i++){
+                        $('.page a:last').before('<a href="javascript:;">' +i+ '</a>');
+                    }
+                }else if(parseInt(data.page_id)>parseInt(data.num_pages)-2){    //当前页后面不足两页时
+                    for(var i=0;i<5;i++){
+                        $('.page a:first').after('<a href="javascript:;">' +(parseInt(data.num_pages)-i)+ '</a>');
+                    }
+                }else{
+                    for(var i=-2;i<=2;i++){
+                        $('.page a:last').before('<a href="javascript:;">' +(parseInt(data.page_id)+i)+ '</a>');
+                    }
+                }
+
+                $('.page a:not(":first,:last")').each(function () {    //为当前页加上active
+                    if($(this).text()==data.page_id)
+                        $(this).addClass('active');
+                });
+
+                page_click();   //为刷新后的页码绑定点击事件
+                $('.page a:first').unbind("click").click(function () {
+                    if(parseInt(data.page_id)<=1) {
+                        return
+                    } else{
+                        go_to_page(parseInt(data.page_id)-1);
+                    }
+                });
+                $('.page a:last').unbind("click").click(function () {
+                    if(parseInt(data.page_id)>=parseInt(data.num_pages)) {
+                        return
+                    } else {
+                        go_to_page(parseInt(data.page_id) + 1);
+                    }
+                });
+            }
+
+            //导航栏点击事件
+            $('.navbar_ul li a').click(function () {
+                var type_id = $(this).attr('id')
+                $('.article_list').attr('id', type_id)
+                $('#articles').animatescroll();
+                go_to_page(1, type_id);
+            })
+
+        })
+    </script>
+{% endblock bottom_files %}

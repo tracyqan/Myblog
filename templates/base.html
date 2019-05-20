@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load staticfiles %}
+	<meta charset="UTF-8">
+	<title>{% block title %}LovePython {% endblock %}</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+    <link rel="shortcut icon" href="{%static 'images/icon.ico' %}" />
+    {% block top_files %}
+    {% endblock %}
+</head>
+<body>
+	<div class="content">
+		<!-- 首页标题 -->
+		<div class="title">LovePython do everything you want</div>
+		{% block body %}{% endblock %}
+	</div>
+	<!-- 首页底部信息 -->
+	<div class="bottom">
+		<div class="bottom_info">
+			<span class="first">LovePython</span>
+			<span class="second">LoveYou</span>
+			<span class="motto">你一定会感谢曾经努力的自己!</span>
+			<span class="web_info">2019 - LovePython</span>
+		</div>
+	</div>
+</body>
+{% block bottom_files %}{% endblock %}
+</html>

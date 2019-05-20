@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block top_files %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/code.css' %}">  {#语法高亮#}
+    <script type="text/javascript" src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+{% endblock top_files %}
+{% block title %}
+    {{ article.title }}
+{% endblock title %}
+{% block body %}
+    <div class="content_detail">
+        {{ article.content | safe }}
+    </div>
+    <br>
+    <br>
+    <br>
+    <div class="to_prev_next">
+        {% if  prev_article %}
+             <a class="to_prev" href="{% url 'article:detail' prev_article.id %}">上一篇: {{ prev_article.title }}</a>
+        {% endif %}
+        {% if next_article %}
+            <a class="to_next" href="{% url 'article:detail' next_article.id %}">下一篇: {{ next_article.title }}</a>
+        {% endif %}
+    </div>
+    <br>
+    <br>
+    <a href="javascript:;" class="back_to_top" title="回到顶部"></a>
+{% endblock body %}
+{% block bottom_files %}
+    <script type="text/javascript">
+        var backButton=$('.back_to_top');
+        function backToTop() {
+        $('html,body').animate({
+            scrollTop: 0
+        }, 800);
+        }
+        backButton.on('click', backToTop);
+
+        $(window).on('scroll', function () {/*当滚动条的垂直位置大于浏览器所能看到的页面的那部分的高度时，回到顶部按钮就显示 */
+            if ($(window).scrollTop() > $(window).height())
+                backButton.fadeIn();
+            else
+                backButton.fadeOut();
+        });
+        $(window).trigger('scroll');/*触发滚动事件，避免刷新的时候显示回到顶部按钮*/
+        $(window).bind("load", function() {
+			var footerHeight = 0;
+			var windowHeight = 0;
+			var bodyHeight =0;
+			positionFooter();
+			function positionFooter() {
+				// 获取页脚的高度
+				footerHeight = $('.bottom').height();
+                windowHeight =  $(window).height();
+                bodyHeight = $(document.body).height();
+				//如果页面内容高度小于屏幕高度，div#footer将绝对定位到屏幕底部，否则div#footer保留它的正常静态定位
+				if(bodyHeight < windowHeight) {
+					$(document.body).css({ height: windowHeight-footerHeight + 'px' });
+					$('.bottom').css({top: windowHeight - footerHeight + 'px', position: "absolute"});
+				}
+			}
+{#			$(window).scroll(positionFooter).resize(positionFooter);#}
+		});
+</script>
+{% endblock bottom_files %}
